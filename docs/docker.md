@@ -91,6 +91,7 @@ Podman 已在系统中安装，指令功能和 docker 完全相同
       "/var/lib/shared-containers/storage"
   ]
   ```
+  也可自行设置为其他可用路径
 
 - 使用共享镜像池拉取脚本，直接在 bash 中使用 share-image 指令
   ```bash
