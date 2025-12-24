@@ -102,6 +102,7 @@ Podman 指令功能以及使用方法和 docker 完全相同，只需将 docker 
   ```
 
 ## 所有用户容器 uid 映射表
+  若容器启用 user namespace，则按照下表的规则与宿主机的 uid 命名空间进行映射，若未启用 user namespace，则和宿主机共享同一个命名空间，共享同样的文件权限
   ```
   wuhuanhuan:296608:65536
   wanghaoran:362144:65536
