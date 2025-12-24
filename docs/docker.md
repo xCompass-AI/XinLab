@@ -94,7 +94,8 @@ Podman 已在系统中安装，指令功能和 docker 完全相同
 
 - 使用共享镜像池拉取脚本，直接在 bash 中使用 share-image 指令
   ```bash
-  share-image <image name>
+  # sudo 运行该指令不会触发报错
+  sudo share-image <image name>
   # 例如
-  share-image docker.io/library/nvidia-cuda-image
+  sudo share-image docker.io/library/nvidia-cuda-image
   ```
