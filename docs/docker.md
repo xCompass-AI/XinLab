@@ -1,5 +1,5 @@
 ## Podman (推荐)
-Podman 已在系统中安装，指令功能以及使用方法和 docker 完全相同，只需将 docker 指令替换为 podman
+Podman 指令功能以及使用方法和 docker 完全相同，只需将 docker 指令替换为 podman
 
 使用示例
 - 拉取镜像。Podman 默认不会只在 Docker Hub 找镜像，它会询问你。建议带上完整的域名。
