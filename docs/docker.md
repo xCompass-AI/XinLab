@@ -75,7 +75,7 @@ Podman 已在系统中安装，指令功能和 docker 完全相同
   ```
 
 ## Podman 配置系统级共享镜像池
-  Podman 默认镜像池路径为 `~/.local/share/containers/storage`
+  Podman 默认镜像池路径存放在个人 home 目录下 `~/.local/share/containers/storage`
 - 用户层面单独添加共享仓库
   ```bash
   mkdir -p ~/.config/containers
@@ -99,3 +99,23 @@ Podman 已在系统中安装，指令功能和 docker 完全相同
   # 例如
   sudo share-image docker.io/library/nvidia-cuda-image
   ```
+
+## 所有用户容器 uid 映射表
+  ```
+  wuhuanhuan:296608:65536
+  wanghaoran:362144:65536
+  maxusheng:427680:65536
+  changshaole:493216:65536
+  qixiaoning:558752:65536
+  hujiaxin:624288:65536
+  fangchen:689824:65536
+  liuwenhao:755360:65536
+  guoshuyu:820896:65536
+  dingyali:886432:65536
+  chenqicheng:951968:65536
+  houting:1017504:65536
+  huyanping:1083040:65536
+  wangyunlong:1148576:65536
+  renxianwen:1214112:65536
+  ```
+  以 wuhuanhuan:296608:65536 为例，容器内 uid=0 的用户身份映射到外部宿主机的 uid 为 296608，该用户可用的映射空间以 296608 为起点，空间大小为 65536，也就是 296608 ~ 296608+65536
