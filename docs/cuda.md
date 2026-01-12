@@ -33,7 +33,7 @@
 
   - 查看当前系统所有已安装 cuda 版本
     ```bash
-    ll /usr/local/ | grep cuda
+    ll /usr/local/ | grep cuda-
     ```
     可以看到类似如下输出
     
