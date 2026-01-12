@@ -47,7 +47,7 @@
     
 
 ### conda 更改 cuda 版本
-  在 conda 的环境中可以单独配置该环境使用的 cuda 版本
+  在 conda 的环境中可以单独配置该环境使用的 cuda 版本，可直接使用系统已有的安装版本（见下面使用方法），也可自行在 conda 内安装 cuda
   - `conda activate <env_name>` 激活要更改的环境后，创建激活脚本目录
     ```bash
     mkdir -p $CONDA_PREFIX/etc/conda/activate.d
