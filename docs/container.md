@@ -119,7 +119,6 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
     echo "[INFO] Command: $CMD"
     
     exec podman run -it \
-      --rm \
       "${DEVICE_ARGS[@]}" \
       -e NVIDIA_VISIBLE_DEVICES="$NV_VISIBLE" \
       "$IMAGE" $CMD
