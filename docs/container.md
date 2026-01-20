@@ -10,6 +10,19 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
   alias docker=podman
   ```
 
+  使用 `source ~/.bashrc` 重载 bash 配置文件，或在新建 bash 窗口
+
+  输入指令
+  ```bash
+  docker run -it --name <test-name> docker.io/library/ubuntu /bin/bash
+  ```
+
+  等同于输入
+  ```bash
+  podman run -it --name <test-name> docker.io/library/ubuntu /bin/bash
+  ```
+  
+
 ### 使用示例
 - 拉取镜像。拉取方式与 docker 相同，需要注意的是 Podman 默认不会只在 Docker Hub 找镜像，它会询问你。建议带上完整的域名。
   ```bash
