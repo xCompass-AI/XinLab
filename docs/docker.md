@@ -1,49 +1,141 @@
 ## Podman (推荐)
-Podman 指令功能以及使用方法和 docker 完全相同，只需将 docker 指令替换为 podman
+Podman 是一个容器化工具，和 docker 的功能一致且更完善，其指令功能以及使用方法和 docker 完全相同，只需将 `docker` 指令替换为 `podman`
 
-使用示例
-- 拉取镜像。Podman 默认不会只在 Docker Hub 找镜像，它会询问你。建议带上完整的域名。
+- (可选) 别名伪装，bash 中输入 `docker` 指向 `podman`，方便使用
+  ```bash
+  nano ~/.bashrc
+  ```
+  在 .bashrc 文件后面追加内容：
+  ```bash
+  alias docker=podman
+  ```
+
+## 使用示例
+- 拉取镜像。拉取方式与 docker 相同，需要注意的是 Podman 默认不会只在 Docker Hub 找镜像，它会询问你。建议带上完整的域名。
   ```bash
   podman pull docker.io/library/ubuntu
   ```
 
-- 运行容器
+- 运行容器，运行 ubuntu 镜像并启动容器内 bash
   ```bash
-  podman run -it --name test_os docker.io/library/ubuntu /bin/bash
+  podman run -it --name <test-name> docker.io/library/ubuntu /bin/bash
   ```
 
-- 查看容器
+- 查看所有已创建容器
   ```bash
   podman ps -a
   ```
 
 - 停止与删除
   ```bash
-  podman stop test_os
-  podman rm test_os
+  podman stop <test-name>
+  podman rm <test-name>
   ```
 
-- 使用 CDI 配置文件调用 GPU 示例，`/etc/cdi/nvidia.yaml`
+## 容器内使用 GPU
+容器内使用 GPU 需要手动将 nvidia 设备文件挂载入容器内（nvidia 基础设备 `/dev/nvidiactl`、`/dev/nvidia-uvm`、`/dev/nvidia-uvm-tools`，以及 nvidia 设备节点 `/dev/nvidia0`、`/dev/nvidia1`、...），并设置 `NVIDIA_VISIBLE_DEVICES` 环境变量，下面为具体示例
+
+- 容器内使用所有 GPU，基于 nvidia/cuda:12.2.0-base 镜像创建容器并进入容器内 bash 交互界面
   ```bash
-  # 将所有 GPU 挂载入容器内
-  podman run --rm --device nvidia.com/gpu=all ubuntu nvidia-smi
-  ```
-  ```bash
-  # 将第一张和第二张 GPU 挂载入容器内
-  podman run --rm \
-    --device nvidia.com/gpu=0 \
-    --device nvidia.com/gpu=1 \
-    ubuntu nvidia-smi
+  # --rm 参数建议调试时使用，可以在容器意外退出时自动清理，长期运行不需要添加
+  podman run -it \
+    --rm \
+    --device /dev/nvidia0 \
+    --device /dev/nvidia1 \
+    --device /dev/nvidia2 \
+    --device /dev/nvidia3 \
+    --device /dev/nvidia4 \
+    --device /dev/nvidia5 \
+    --device /dev/nvidia6 \
+    --device /dev/nvidia7 \
+    --device /dev/nvidiactl \
+    --device /dev/nvidia-uvm \
+    --device /dev/nvidia-uvm-tools \
+    nvidia/cuda:12.2.0-base /bin/bash
   ```
 
-- (可选) 别名伪装，bash 中输入 docker 指向 podman
+- 容器内使用部分 GPU，以 GPU0 和 GPU2 为例，基于 nvidia/cuda:12.2.0-base 镜像创建容器并进入容器内 bash
   ```bash
-  nano ~/.bashrc
+  # --rm 参数建议调试时使用，可以在容器意外退出时自动清理，长期运行不需要添加
+  # -e NVIDIA_VISIBLE_DEVICES=0,2 在使用部分 GPU 时必须要设置
+  podman run -it \
+    --rm \
+    --device /dev/nvidia0 \
+    --device /dev/nvidia2 \
+    --device /dev/nvidiactl \
+    --device /dev/nvidia-uvm \
+    --device /dev/nvidia-uvm-tools \
+    -e NVIDIA_VISIBLE_DEVICES=0,2 \
+    nvidia/cuda:12.2.0-base /bin/bash
   ```
-  在 .bashrc 后面添加
-  ```bash
-  alias docker=podman
-  ```
+
+- 使用 bash 脚本启动，示例如下
+
+  创建脚本
+    ```bash
+    nano podman-gpu-run.sh
+    ```
+
+  写入如下内容并保存
+    ```bash
+    #!/usr/bin/env bash
+    set -euo pipefail
+  
+    # IMGAE 变量设置镜像名
+    IMAGE=${IMAGE:-"nvidia/cuda:12.2.0-base"}
+  
+    # CMD 变量设置启动容器后执行的指令
+    CMD=${CMD:-"/bin/bash"}
+    # CMD=${CMD:-"nvidia-smi"}
+    
+    GPU_REQ=${1:-all}
+  
+    BASE_DEVICES=(
+      /dev/nvidiactl
+      /dev/nvidia-uvm
+      /dev/nvidia-uvm-tools
+    )
+  
+    mapfile -t GPU_NODES < <(ls /dev/nvidia[0-9]* 2>/dev/null || true)
+    
+    if [ ${#GPU_NODES[@]} -eq 0 ]; then
+      echo "ERROR: No /dev/nvidiaX devices found"
+      exit 1
+    fi
+  
+    DEVICE_ARGS=()
+    for dev in "${BASE_DEVICES[@]}" "${GPU_NODES[@]}"; do
+      DEVICE_ARGS+=(--device "$dev")
+    done
+    
+    if [ "$GPU_REQ" = "all" ]; then
+      NV_VISIBLE="all"
+    else
+      NV_VISIBLE="$GPU_REQ"
+    fi
+    
+    echo "[INFO] GPUs requested: $NV_VISIBLE"
+    echo "[INFO] Image: $IMAGE"
+    echo "[INFO] Command: $CMD"
+    
+    exec podman run -it \
+      --rm \
+      "${DEVICE_ARGS[@]}" \
+      -e NVIDIA_VISIBLE_DEVICES="$NV_VISIBLE" \
+      "$IMAGE" $CMD
+    ```
+
+  为脚本添加执行权限
+    ```bash
+    chmod +x podman-gpu-run.sh
+    ```
+
+  使用方式：
+    ```bash
+    ./podman-gpu-run.sh all # 指定使用全部 GPU
+    ./podman-gpu-run.sh 0,2 # 指定使用 0 和 2 GPU
+    ./podman-gpu-run.sh GPU-xxxx,GPU-yyyy # 使用 GPU PCIe 地址指定（不推荐）
+    ```
 
 ## Rootless docker (不推荐)
 - 用户层面单独进行配置安装
