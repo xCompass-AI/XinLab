@@ -1,4 +1,4 @@
-## Podman (推荐)
+# Podman 容器
 Podman 是一个容器化工具，和 docker 的功能一致且更完善，其指令功能以及使用方法和 docker 完全相同，只需将 `docker` 指令替换为 `podman`
 
 - (可选) 别名伪装，bash 中输入 `docker` 指向 `podman`，方便使用
@@ -10,7 +10,7 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
   alias docker=podman
   ```
 
-## 使用示例
+### 使用示例
 - 拉取镜像。拉取方式与 docker 相同，需要注意的是 Podman 默认不会只在 Docker Hub 找镜像，它会询问你。建议带上完整的域名。
   ```bash
   podman pull docker.io/library/ubuntu
@@ -32,7 +32,7 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
   podman rm <test-name>
   ```
 
-## 容器内使用 GPU
+### 容器内使用 GPU
 容器内使用 GPU 需要手动将 nvidia 设备文件挂载入容器内（nvidia 基础设备 `/dev/nvidiactl`、`/dev/nvidia-uvm`、`/dev/nvidia-uvm-tools`，以及 nvidia 设备节点 `/dev/nvidia0`、`/dev/nvidia1`、...），并设置 `NVIDIA_VISIBLE_DEVICES` 环境变量，下面为具体示例
 
 - 容器内使用所有 GPU，基于 nvidia/cuda:12.2.0-base 镜像创建容器并进入容器内 bash 交互界面
@@ -137,7 +137,34 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
     ./podman-gpu-run.sh GPU-xxxx,GPU-yyyy # 使用 GPU PCIe 地址指定（不推荐）
     ```
 
-## Rootless docker (不推荐)
+### Podman 配置系统级共享镜像池
+  Podman 默认镜像池路径存放在个人 home 目录下 `~/.local/share/containers/storage`，可添加系统级共享镜像池方便多用户共享镜像
+- 用户层面单独添加共享仓库
+  ```bash
+  mkdir -p ~/.config/containers
+  nano ~/.config/containers/storage.conf
+  ```
+  在 storage.conf 中添加
+  ```TOML
+  [storage]
+  driver = "overlay"
+    
+  [storage.options]
+  additionalimagestores = [
+      "/var/lib/shared-containers/storage"
+  ]
+  ```
+  也可自行设置为其他可用路径
+
+- 使用共享镜像池拉取脚本，直接在 bash 中使用 share-image 指令
+  ```bash
+  # sudo 运行该指令不会触发报错
+  sudo share-image <image name>
+  # 例如
+  sudo share-image docker.io/library/nvidia-cuda-image
+  ```
+
+# Rootless docker (不推荐)
 - 用户层面单独进行配置安装
   ```bash
   # 运行安装脚本（不需要 sudo）
@@ -166,34 +193,7 @@ Podman 是一个容器化工具，和 docker 的功能一致且更完善，其�
     ubuntu nvidia-smi
   ```
 
-## Podman 配置系统级共享镜像池
-  Podman 默认镜像池路径存放在个人 home 目录下 `~/.local/share/containers/storage`
-- 用户层面单独添加共享仓库
-  ```bash
-  mkdir -p ~/.config/containers
-  nano ~/.config/containers/storage.conf
-  ```
-  在 storage.conf 中添加
-  ```TOML
-  [storage]
-  driver = "overlay"
-    
-  [storage.options]
-  additionalimagestores = [
-      "/var/lib/shared-containers/storage"
-  ]
-  ```
-  也可自行设置为其他可用路径
-
-- 使用共享镜像池拉取脚本，直接在 bash 中使用 share-image 指令
-  ```bash
-  # sudo 运行该指令不会触发报错
-  sudo share-image <image name>
-  # 例如
-  sudo share-image docker.io/library/nvidia-cuda-image
-  ```
-
-## 所有用户容器 uid 映射表
+# 所有用户容器 uid 映射表
   若容器启用 user namespace，则按照下表的规则与宿主机的 uid 命名空间进行映射，若未启用 user namespace，则和宿主机共享同一个命名空间，共享同样的文件权限
   ```
   wuhuanhuan:296608:65536
