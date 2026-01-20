@@ -1,5 +1,5 @@
 # Podman 容器
-Podman 是一个容器化工具，和 docker 的功能一致且更完善，其指令功能以及使用方法和 docker 完全相同，只需将 `docker` 指令替换为 `podman`
+Podman 是一个容器化工具，和 docker 的功能一致且更完善，其指令功能以及使用方法和 docker 基本一致，只需将 `docker` 指令替换为 `podman`
 
 - (可选) 别名伪装，bash 中输入 `docker` 指向 `podman`，方便使用
   ```bash
